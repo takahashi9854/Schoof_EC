@@ -14,8 +14,8 @@ int inv_mod(int a, int b){
   // long long xa, ya, r, q, x, y, ra;
   int xa,ya,r,q,x,y,ra;
   x=a; y=b; xa=1; ya=0;
-  while(x<0) x+=p;
-  while(y<0) y+=p;
+  while(x<0) x+=b;
+  while(y<0) y+=b;
   while(y>0){
     r=x%y;
     q=x/y;
@@ -29,13 +29,10 @@ int inv_mod(int a, int b){
   if(x==1){
     return xa%b;
   }else{
-    // printf("cannot find inverse module %d.\n",p);
+    printf("cannot find inverse module %d.\n",p);
     exit(1);
     return 0;
   }
-}
-
-void div_pol(POL *q,POL *r,const POL *a, const POL *b){
 }
 
 int init_pol(POL *a,int size){
@@ -47,11 +44,41 @@ int init_pol(POL *a,int size){
   else return -1;
 }
 
+void del_pol(POL *a){
+  free(a);
+}
+  
+
 void print_pol(POL *a){
   int i;
   for(i=0;i<(a->n);i++) printf("%d:%d ",i,a->co[i]);
   printf("\n");
 }
+
+void copy_pol(POL *x, const POL *a){
+  int i;
+  init_pol(x,a->order);
+  for(i=0;i<a->n;i++) x[i]=a[i];
+}
+
+/*
+int resize_pol(POL *obj,POL *a){
+  int i=a->order;
+  int top=a->order;
+  while(i>=0){
+    if(a->co[i]==0) break;
+    i--;
+  }
+  if(i==0){
+    printf("cannot resize this polynominal.\n");
+    return -1;
+  }else{
+    init_pol(obj,i);
+    for(i=0;i<=(obj->n);i++) obj->co[i] = a->co[i];
+  }
+  return 1;
+}
+*/
 
 void add_pol(POL *c, const POL *a,const POL *b){
   // c = a + b
@@ -123,8 +150,43 @@ void mul_pol(POL *c, const POL *a,const POL *b){
   }
 }
 
+/*
+Division of Polynominals.
+
+Given two polynominals A and B in K[X] with B \neq 0,
+this algorithm finds Q and R such that A = BQ + R and deg(R) < deg(B).
+
+deg(Q) = deg(a) - deg(B)
+deg(R) < deg(Q)
+
+1.[Initialize]
+Set R \lefttarrow A, Q \leftarrow 0.
+2.[Finished?]
+If deg(R) < deg(B) then terminate the algorithm.
+3.[Find coefficient]
+Set
+S \leftarrow \ell(R)/\ell(B) X^{deg(R) - deg(B)}
+then, Q \leftarrow Q+S, R \leftarrow R-S \times B and go to step 2.
+
+(Recall that \ell(Z) is the leading coefficient of Z.)
+
+ */
+
+void div_pol(POL *q,POL *r,const POL *a, const POL *b){
+  int i;
+  int condition; // condition to stop the loop.
+  // In this case, the conditon to stop the loop is when deg(R) < deg(B)
+  copy_pol(r,a); // R \leftarrow A
+  init_pol(q,a->order - b->order); // Q \leftarrow 0
+  while(r->order >= b->order ){
+    
+  }
+}
+
+
 int main(){
-  POL a,b,c;
+  POL a,b,c,d;
+  int i;
 
   if(init_pol(&a,2) && init_pol(&b,2)) printf("success. the order of a is %d.\n",a.order);
   print_pol(&a);
@@ -134,7 +196,7 @@ int main(){
   a.co[2]=4;
   b.co[0]=2;
   b.co[1]=3;
-  b.co[2]=1;
+  b.co[2]=0;
   //b.co[3]=3;
 
   printf("a\n");
@@ -143,7 +205,10 @@ int main(){
   print_pol(&b);
   mul_pol(&c,&a,&b);
   print_pol(&c);
-  
+
+  copy_pol(&d,&a);
+  print_pol(&d);
+
   return 0;
 }
   
