@@ -36,8 +36,11 @@ int inv_mod(int a, int b){
 
 int init_pol(POL *a,int size){
   //size in paramator is the order of polynominal.
+  int i,n;
   a->order = size;
-  a->co = (int *)malloc(sizeof(int) * (a->order + 1));
+  n = a->order + 1;
+  a->co = (int *)malloc(sizeof(int) * n);
+  for(i=0;i<=a->order;i++) a->co[i]=0;
   if(a->co != 0) return 1;
   else return -1;
 }
@@ -53,10 +56,8 @@ void print_pol(POL *a){
   printf("\n");
 }
 
-void copy_pol(POL *x, const POL *y){
-  int i;
-  init_pol(x,y->order);
-  for(i=0;i<=y->order;i++) x[i]=y[i];
+void print_order(POL *a){
+  printf("order:%d.\n",a->order);
 }
 
 /*
@@ -149,6 +150,12 @@ void mul_pol(POL *c, const POL *a,const POL *b){
   }
 }
 
+void copy_pol(POL *x, const POL *y){
+  int i;
+  init_pol(x,y->order);
+  for(i=0;i<=(y->order);i++) x[i]=y[i];
+}
+
 /*
 Division of Polynominals.
 
@@ -186,19 +193,18 @@ int main(){
   POL a,b,c,d;
   int i;
 
-  if(init_pol(&a,2) && init_pol(&b,3)) printf("success. the order of a is %d.\n",a.order);
-  print_pol(&a);
-  print_pol(&b);
+  if( init_pol(&a,2) && init_pol(&b,3) ) printf("success. the order of a is %d.\n",a.order);
+
   a.co[0]=-2;
   a.co[1]=1;
   a.co[2]=4;
+
   b.co[0]=2;
   b.co[1]=3;
   b.co[2]=0;
   b.co[3]=3;
 
-  div_pol(&c,&d,&b,&a);
-
+    
   /*
   printf("a\n");
   print_pol(&a);
