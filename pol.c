@@ -7,7 +7,6 @@ const int p = 5;
 typedef struct{
   int *co; // coefficient
   int order; //order of the polynominal
-  int n; // the number of terms in polynominal which is order + 1.
 } POL;
 
 int inv_mod(int a, int b){
@@ -38,8 +37,7 @@ int inv_mod(int a, int b){
 int init_pol(POL *a,int size){
   //size in paramator is the order of polynominal.
   a->order = size;
-  a->n = a->order + 1;
-  a->co = (int *)malloc(sizeof(int) * a->n);
+  a->co = (int *)malloc(sizeof(int) * (a->order + 1));
   if(a->co != 0) return 1;
   else return -1;
 }
@@ -51,14 +49,14 @@ void del_pol(POL *a){
 
 void print_pol(POL *a){
   int i;
-  for(i=0;i<(a->n);i++) printf("%d:%d ",i,a->co[i]);
+  for(i=0;i<=(a->order);i++) printf("[%d]:%d ",i,a->co[i]);
   printf("\n");
 }
 
-void copy_pol(POL *x, const POL *a){
+void copy_pol(POL *x, const POL *y){
   int i;
-  init_pol(x,a->order);
-  for(i=0;i<a->n;i++) x[i]=a[i];
+  init_pol(x,y->order);
+  for(i=0;i<=y->order;i++) x[i]=y[i];
 }
 
 /*
@@ -86,22 +84,22 @@ void add_pol(POL *c, const POL *a,const POL *b){
   
   if(a->order > b->order){
     init_pol(c,a->order);
-    least_n = b->n;
     least_order = b->order;
-    for(i=least_n;i<(a->n);i++){
+    for(i=least_order+1;i<=(a->order);i++){
       // c->co[i]=a->co[i];
       c->co[i]=(a->co[i])%p;
+      while(c->co[i] < 0) (c->co[i])+=p;
     }    
   }else{
     init_pol(c,b->order);
-    least_n = a->n;
     least_order = a->order;
-    for(i=least_n;i<(b->n);i++){
+    for(i=least_order+1;i<=(b->order);i++){
       // c->co[i]=b->co[i];
       c->co[i]=(b->co[i])%p;
+      while(c->co[i] < 0) (c->co[i])+=p;
     }
   }
-  for(i=0;i<least_n;i++){
+  for(i=0;i<=least_order;i++){
     // c->co[i] = a->co[i] + b->co[i];
     c->co[i] = (a->co[i] + b->co[i])%p;
   }
@@ -113,23 +111,22 @@ void sub_pol(POL *c, const POL *a,const POL *b){
   
   if(a->order > b->order){
     init_pol(c,a->order);
-    least_n = b->n;
     least_order = b->order;
-    for(i=least_n;i<(a->n);i++){
+    for(i=least_order+1;i<=(a->order);i++){
       // c->co[i]=a->co[i];
       c->co[i]=(a->co[i])%p;
+      while(c->co[i] < 0) (c->co[i])+=p;
     }    
   }else{
     init_pol(c,b->order);
-    least_n = a->n;
     least_order = a->order;
-    for(i=least_n;i<(b->n);i++){
+    for(i=least_order+1;i<=(b->order);i++){
       // c->co[i]= -b->co[i];
-      c->co[i]= (-b->co[i])%p;
+      c->co[i]= (-1 * b->co[i])%p;
       while(c->co[i] < 0) (c->co[i])+=p;
     }
   }
-  for(i=0;i<least_n;i++){
+  for(i=0;i<=least_order;i++){
     // c->co[i] = a->co[i] -  b->co[i];
     c->co[i] = (a->co[i] -  b->co[i])%p;
     while(c->co[i] < 0) (c->co[i])+=p;
@@ -141,11 +138,13 @@ void mul_pol(POL *c, const POL *a,const POL *b){
   int i,j;
   init_pol(c,a->order + b->order);
 
-  for(i=0;i<(a->n);i++){
-    for(j=0;j<(b->n);j++){
+  for(i=0;i<=(a->order);i++){
+    for(j=0;j<=(b->order);j++){
       // c->co[i+j] += a->co[i]*b->co[j];
       c->co[i+j] += (a->co[i]*b->co[j])%p;
-      while(c->co[i+j] < 0) c->co[i+j]+=p;
+      c->co[i+j]%=p;
+      while(c->co[i+j] < 0) (c->co[i+j])+=p;
+      
     }
   }
 }
@@ -177,10 +176,9 @@ void div_pol(POL *q,POL *r,const POL *a, const POL *b){
   int condition; // condition to stop the loop.
   // In this case, the conditon to stop the loop is when deg(R) < deg(B)
   copy_pol(r,a); // R \leftarrow A
-  init_pol(q,a->order - b->order); // Q \leftarrow 0
-  while(r->order >= b->order ){
-    
-  }
+  // init_pol(q,r->order - b->order); // Q \leftarrow 0
+  // print_pol(r);
+  // print_pol(q);
 }
 
 
@@ -188,7 +186,7 @@ int main(){
   POL a,b,c,d;
   int i;
 
-  if(init_pol(&a,2) && init_pol(&b,2)) printf("success. the order of a is %d.\n",a.order);
+  if(init_pol(&a,2) && init_pol(&b,3)) printf("success. the order of a is %d.\n",a.order);
   print_pol(&a);
   print_pol(&b);
   a.co[0]=-2;
@@ -197,18 +195,34 @@ int main(){
   b.co[0]=2;
   b.co[1]=3;
   b.co[2]=0;
-  //b.co[3]=3;
+  b.co[3]=3;
 
+  div_pol(&c,&d,&b,&a);
+
+  /*
   printf("a\n");
   print_pol(&a);
   printf("b\n");
   print_pol(&b);
+  printf("mul\n");
   mul_pol(&c,&a,&b);
   print_pol(&c);
+  mul_pol(&c,&b,&a);
+  print_pol(&c);
+  printf("add\n");
+  add_pol(&c,&a,&b);
+  print_pol(&c);
+  add_pol(&c,&b,&a);
+  print_pol(&c);
+  printf("sub\n");
+  sub_pol(&c,&a,&b);
+  print_pol(&c);
+  sub_pol(&c,&b,&a);
+  print_pol(&c);
+  */
 
-  copy_pol(&d,&a);
-  print_pol(&d);
-
+  
+  
   return 0;
 }
   
