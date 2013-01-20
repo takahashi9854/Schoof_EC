@@ -156,6 +156,11 @@ void copy_pol(POL *x, const POL *y){
   for(i=0;i<=(y->order);i++) x[i]=y[i];
 }
 
+void resize_pol(POL *x,POL *a){
+  int neworder=a->order+1;
+  while(a->co[neworder--]!=0);
+  init_pol(x,neworder);
+}
 /*
 Division of Polynominals.
 
@@ -186,6 +191,7 @@ void div_pol(POL *q,POL *r,const POL *a, const POL *b){
   // init_pol(q,r->order - b->order); // Q \leftarrow 0
   // print_pol(r);
   // print_pol(q);
+  
 }
 
 
@@ -202,8 +208,15 @@ int main(){
   b.co[0]=2;
   b.co[1]=3;
   b.co[2]=0;
-  b.co[3]=3;
+  b.co[3]=0;
+  
+  print_pol(&b);
+  resize_pol(&d,&b);
+  print_pol(&d);
+  copy_pol(&d,&b);
+  print_pol(&b);
 
+  div_pol(&d,&c,&a,&b);
     
   /*
   printf("a\n");
