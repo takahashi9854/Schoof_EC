@@ -5,8 +5,8 @@
 const int p = 5;
 
 typedef struct{
-  int *co; // coefficient
-  int order; //order of the polynominal
+  int *co; // coefficients of polynomial.
+  int order; //order of the polynominl.
 } POL;
 
 int inv_mod(int a, int b){
@@ -64,7 +64,7 @@ void print_order(POL *a){
 /*
 int resize_pol(POL *obj,POL *a){
   int i=a->order;
-  int top=a->order;
+x  int top=a->order;
   while(i>=0){
     if(a->co[i]==0) break;
     i--;
@@ -200,15 +200,9 @@ int main(){
   POL a,b,c,d;
   int i;
 
-  a.order = 3;
-  a.co = calloc(a.order+1,sizeof(int));
-  memset(a.co,a.order+1,0);
-
-  a.co[3]=4;
-  a.co[4]=5;
-  if(a.co != NULL)
-  printf("%d,%d\n",a.order,(int)(sizeof(a.co)/sizeof(a.co[0])) );
-
+  a.order = 2;
+  printf("order : %d\n",a.order);
+  a.co = malloc(sizeof(int) * (a.order +1));
   free(a.co);
 
   return 0;
