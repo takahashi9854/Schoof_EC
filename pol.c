@@ -38,7 +38,7 @@ int init_pol(POL *a,int size){
   //size in paramator is the order of polynominal.
   int i,n;
   a->order = size;
-  n = a->order + 1;
+  n = (a->order + 1);
   a->co = (int *)malloc(sizeof(int) * n);
   for(i=0;i<=a->order;i++) a->co[i]=0;
   if(a->co != 0) return 1;
@@ -46,7 +46,8 @@ int init_pol(POL *a,int size){
 }
 
 void del_pol(POL *a){
-  free(a);
+  free(a->co);
+  a->order=0;
 }
   
 
@@ -199,49 +200,17 @@ int main(){
   POL a,b,c,d;
   int i;
 
-  if( init_pol(&a,2) && init_pol(&b,3) ) printf("success. the order of a is %d.\n",a.order);
+  a.order = 3;
+  a.co = calloc(a.order+1,sizeof(int));
+  memset(a.co,a.order+1,0);
 
-  a.co[0]=-2;
-  a.co[1]=1;
-  a.co[2]=4;
+  a.co[3]=4;
+  a.co[4]=5;
+  if(a.co != NULL)
+  printf("%d,%d\n",a.order,(int)(sizeof(a.co)/sizeof(a.co[0])) );
 
-  b.co[0]=2;
-  b.co[1]=3;
-  b.co[2]=0;
-  b.co[3]=0;
-  
-  print_pol(&b);
-  resize_pol(&d,&b);
-  print_pol(&d);
-  copy_pol(&d,&b);
-  print_pol(&b);
+  free(a.co);
 
-  div_pol(&d,&c,&a,&b);
-    
-  /*
-  printf("a\n");
-  print_pol(&a);
-  printf("b\n");
-  print_pol(&b);
-  printf("mul\n");
-  mul_pol(&c,&a,&b);
-  print_pol(&c);
-  mul_pol(&c,&b,&a);
-  print_pol(&c);
-  printf("add\n");
-  add_pol(&c,&a,&b);
-  print_pol(&c);
-  add_pol(&c,&b,&a);
-  print_pol(&c);
-  printf("sub\n");
-  sub_pol(&c,&a,&b);
-  print_pol(&c);
-  sub_pol(&c,&b,&a);
-  print_pol(&c);
-  */
-
-  
-  
   return 0;
 }
   
