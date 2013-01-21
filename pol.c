@@ -5,9 +5,10 @@
 const int p = 5;
 
 typedef struct{
-  int *co; // coefficients of polynomial.
-  int order; //order of the polynominl.
-} POL;
+  int Degree; //order of the polynominl.
+  int *Coeff; // coefficients of polynomial.
+  
+} Polynomial;
 
 int inv_mod(int a, int b){
   // long long xa, ya, r, q, x, y, ra;
@@ -34,134 +35,27 @@ int inv_mod(int a, int b){
   }
 }
 
-int init_pol(POL *a,int size){
-  //size in paramator is the order of polynominal.
-  int i,n;
-  a->order = size;
-  n = (a->order + 1);
-  a->co = (int *)malloc(sizeof(int) * n);
-  for(i=0;i<=a->order;i++) a->co[i]=0;
-  if(a->co != 0) return 1;
-  else return -1;
-}
-
-void del_pol(POL *a){
-  free(a->co);
-  a->order=0;
-}
-  
-
-void print_pol(POL *a){
+int initPolynomial(Polynomial* P, const int D, const int* C){
   int i;
-  for(i=0;i<=(a->order);i++) printf("[%d]:%d ",i,a->co[i]);
-  printf("\n");
-}
-
-void print_order(POL *a){
-  printf("order:%d.\n",a->order);
-}
-
-/*
-int resize_pol(POL *obj,POL *a){
-  int i=a->order;
-x  int top=a->order;
-  while(i>=0){
-    if(a->co[i]==0) break;
-    i--;
-  }
-  if(i==0){
-    printf("cannot resize this polynominal.\n");
-    return -1;
-  }else{
-    init_pol(obj,i);
-    for(i=0;i<=(obj->n);i++) obj->co[i] = a->co[i];
-  }
-  return 1;
-}
-*/
-
-void add_pol(POL *c, const POL *a,const POL *b){
-  // c = a + b
-  int i,least_n,least_order;
-  
-  if(a->order > b->order){
-    init_pol(c,a->order);
-    least_order = b->order;
-    for(i=least_order+1;i<=(a->order);i++){
-      // c->co[i]=a->co[i];
-      c->co[i]=(a->co[i])%p;
-      while(c->co[i] < 0) (c->co[i])+=p;
-    }    
-  }else{
-    init_pol(c,b->order);
-    least_order = a->order;
-    for(i=least_order+1;i<=(b->order);i++){
-      // c->co[i]=b->co[i];
-      c->co[i]=(b->co[i])%p;
-      while(c->co[i] < 0) (c->co[i])+=p;
+  if(P!=NULL && C!= NULL){
+    P->Degree = D;
+    P->Coeff = malloc(sizeof(int) * (P->Degree + 1));
+    if(P->Coeff == NULL){
+      puts("could't allocate memory.");
+      exit(1);
     }
-  }
-  for(i=0;i<=least_order;i++){
-    // c->co[i] = a->co[i] + b->co[i];
-    c->co[i] = (a->co[i] + b->co[i])%p;
-  }
-}
-
-void sub_pol(POL *c, const POL *a,const POL *b){
-  // c = a-b;
-  int i,least_n,least_order;
-  
-  if(a->order > b->order){
-    init_pol(c,a->order);
-    least_order = b->order;
-    for(i=least_order+1;i<=(a->order);i++){
-      // c->co[i]=a->co[i];
-      c->co[i]=(a->co[i])%p;
-      while(c->co[i] < 0) (c->co[i])+=p;
-    }    
+    memset(P->Coeff,0,P->Degree + 1);
+    
+    for(i=0;i<=P->Degree;i++){
+      P->Coeff[i] = C[i];
+    }
+    return 1; //true;
   }else{
-    init_pol(c,b->order);
-    least_order = a->order;
-    for(i=least_order+1;i<=(b->order);i++){
-      // c->co[i]= -b->co[i];
-      c->co[i]= (-1 * b->co[i])%p;
-      while(c->co[i] < 0) (c->co[i])+=p;
-    }
-  }
-  for(i=0;i<=least_order;i++){
-    // c->co[i] = a->co[i] -  b->co[i];
-    c->co[i] = (a->co[i] -  b->co[i])%p;
-    while(c->co[i] < 0) (c->co[i])+=p;
+    return -1; //false;
   }
 }
 
-void mul_pol(POL *c, const POL *a,const POL *b){
-  // c = a*b;
-  int i,j;
-  init_pol(c,a->order + b->order);
 
-  for(i=0;i<=(a->order);i++){
-    for(j=0;j<=(b->order);j++){
-      // c->co[i+j] += a->co[i]*b->co[j];
-      c->co[i+j] += (a->co[i]*b->co[j])%p;
-      c->co[i+j]%=p;
-      while(c->co[i+j] < 0) (c->co[i+j])+=p;
-      
-    }
-  }
-}
-
-void copy_pol(POL *x, const POL *y){
-  int i;
-  init_pol(x,y->order);
-  for(i=0;i<=(y->order);i++) x[i]=y[i];
-}
-
-void resize_pol(POL *x,POL *a){
-  int neworder=a->order+1;
-  while(a->co[neworder--]!=0);
-  init_pol(x,neworder);
-}
 /*
 Division of Polynominals.
 
@@ -183,28 +77,13 @@ then, Q \leftarrow Q+S, R \leftarrow R-S \times B and go to step 2.
 (Recall that \ell(Z) is the leading coefficient of Z.)
 
  */
-
-void div_pol(POL *q,POL *r,const POL *a, const POL *b){
-  int i;
-  int condition; // condition to stop the loop.
-  // In this case, the conditon to stop the loop is when deg(R) < deg(B)
-  copy_pol(r,a); // R \leftarrow A
-  // init_pol(q,r->order - b->order); // Q \leftarrow 0
-  // print_pol(r);
-  // print_pol(q);
-  
-}
-
-
 int main(){
-  POL a,b,c,d;
-  int i;
-
-  a.order = 2;
-  printf("order : %d\n",a.order);
-  a.co = malloc(sizeof(int) * (a.order +1));
-  free(a.co);
-
+  int c[3] = {-2,1,1};
+  int D = 2;
+  Polynomial P;
+  initPolynomial(&P,D,c);
+  
+  printf("%lu\n",sizeof(P.Coeff)/sizeof(P.Coeff[0]));
   return 0;
 }
   
