@@ -39,7 +39,6 @@ int initPolynomial(Polynomial *P,int size){
   int i,n;
   P->Degree = size;
   n = (P->Degree + 1); // the number of coefficients.
-  if(P->Coeff == NULL) return -1;
   P->Coeff = malloc(sizeof(int) * n);
   memset(P->Coeff,0,n);
   return 1;
@@ -47,37 +46,19 @@ int initPolynomial(Polynomial *P,int size){
 
 void delPolynomial(Polynomial *P){
   free(P->Coeff);
+  free(P);
 }
   
 
 void printPolynomial(Polynomial *P){
   int i;
-  for(i=0;i<=(P->Degree);i++) printf("[%d]:%d ",i,P->Coeff[i]);
+  for(i=P->Degree;i>=0;i--) printf("[%d]:%d ",i,P->Coeff[i]);
   printf("\n");
 }
 
 void printDegree(Polynomial *P){
   printf("order:%d.\n",P->Degree);
 }
-
-/*
-int resize_pol(POL *obj,POL *a){
-  int i=a->order;
-x  int top=a->order;
-  while(i>=0){
-    if(a->co[i]==0) break;
-    i--;
-  }
-  if(i==0){
-    printf("cannot resize this polynominal.\n");
-    return -1;
-  }else{
-    init_pol(obj,i);
-    for(i=0;i<=(obj->n);i++) obj->Coeff[i] = a->Coeff[i];
-  }
-  return 1;
-}
-*/
 
 void addPolynomial(Polynomial *C, const Polynomial *A,const Polynomial *B){
   // c = a + b
@@ -137,7 +118,21 @@ void subPolynomial(Polynomial *c, const Polynomial *a,const Polynomial *b){
 void mulPolynomial(Polynomial *c, const Polynomial *a,const Polynomial *b){
   // c = a*b;
   int i,j;
-  initPolynomial(c,a->Degree + b->Degree);
+  c->Degree = a->Degree + b->Degree;
+  c->Coeff = malloc(sizeof(int)*(c->Degree+1));
+  // initPolynomial(c,a->Degree + b->Degree);
+  memset(c->Coeff,0,c->Degree+1);
+  if(c->Coeff == NULL) exit(-1);
+
+  if(a->Degree == 0){
+    for(i=0;i<=b->Degree;i++) c->Coeff[i]=a->Coeff[0]*b->Coeff[i];
+    return;
+  }
+
+  if(b->Degree == 0){
+    for(i=0;i<=a->Degree;i++) c->Coeff[i]=b->Coeff[0]*a->Coeff[i];
+    return;
+  }
 
   for(i=0;i<=(a->Degree);i++){
     for(j=0;j<=(b->Degree);j++){
@@ -165,104 +160,173 @@ void copyPolynomial(Polynomial *x, const Polynomial *y){
   }else{
     for(i=0;i<=(x->Degree);i++) x->Coeff[i]=y->Coeff[i];
   }
-  
 }
 
+void resizePolynomial(Polynomial *P){
+  Polynomial *TMP = malloc(sizeof(Polynomial));
+  int i;
+  int newDegree = P->Degree;
+  while(P->Coeff[newDegree--] == 0 && newDegree >=0 );// find the biggest degree which coefficient is not equall to zero.
+  if(newDegree<0){
+    return;   
+  }
+  TMP->Degree = newDegree+1;
+  TMP->Coeff = malloc(sizeof(int) * (TMP->Degree + 1));
+  if(TMP->Coeff == NULL) exit(-1);
+  for(i=0;i<=TMP->Degree;i++) TMP->Coeff[i] = P->Coeff[i];
+  P->Degree = TMP->Degree;
+  P->Coeff = malloc(sizeof(int) * (P->Degree+1));
+  if(P->Coeff == NULL) exit(-1);
+  for(i=0;i<=TMP->Degree;i++) P->Coeff[i] = TMP->Coeff[i];
+  // free(TMP->Coeff);
+  // free(TMP);
+  delPolynomial(TMP);
+}
 
 /*
-Division of Polynominals.
+  Division of Polynominals.
 
-Given two polynominals A and B in K[X] with B \neq 0,
-this algorithm finds Q and R such that A = BQ + R and deg(R) < deg(B).
+  Given two polynominals A and B in K[X] with B \neq 0,
+  this algorithm finds Q and R such that A = BQ + R and deg(R) < deg(B).
 
-deg(Q) = deg(A) - deg(B)
-deg(R) < deg(Q)
+  deg(Q) = deg(A) - deg(B)
+  deg(R) < deg(Q)
 
-1.[Initialize]
-Set R \lefttarrow A, Q \leftarrow 0.
+  1.[Initialize]
+  Set R \lefttarrow A, Q \leftarrow 0.
 
-2.[Finished?]
-If deg(R) < deg(B) then terminate the algorithm.
+  2.[Finished?]
+  If deg(R) < deg(B) then terminate the algorithm.
 
-3.[Find coefficient]
-Set
-S \leftarrow (\ell(R)) / (\ell(B)) X^{deg(R) - deg(B)}
-then, Q \leftarrow Q+S, R \leftarrow R-S \times B and go to step 2.
+  3.[Find coefficient]
+  Set
+  S \leftarrow (\ell(R)) / (\ell(B)) X^{deg(R) - deg(B)}
+  then, Q \leftarrow Q+S, R \leftarrow R-S \times B and go to step 2.
 
-(Recall that \ell(Z) is the leading coefficient of Z.)
+  (Recall that \ell(Z) is the leading coefficient of Z.)
+*/
 
- */
+int getLeadCoeff(const Polynomial *P){
+  if(P == NULL || P->Coeff == NULL) exit(-1);
+  else return P->Coeff[P->Degree];
+}
 
 void divPolynomial(Polynomial *Q,Polynomial *R,const Polynomial *A, const Polynomial *B){
   int i,degree;
   int condition; // condition to stop the loop.
-  Polynomial S,ADD,MUL,SUB,SB,QS; // SB = S \times B, QS = Q \times S.
-  // In this case, the conditon to stop the loop is when deg(R) < deg(B)
-  copyPolynomial(R,A); // R \leftarrow A
-
-  // Initialize the S of degree (deg(A) - deg(B)) for temporary polynomial.
-  S.Degree = A->Degree - B->Degree;
-  S.Coeff = malloc(sizeof(int) * (S.Degree + 1));
-  if(S.Coeff == NULL) exit(-2);
-  memset(S.Coeff,0,S.Degree + 1);
-  // Here is the end of initialize.
-  // Initialize the ADD of degree (deg(A) - deg(B)) for temporary polynomial.
-  ADD.Degree = A->Degree - B->Degree;
-  ADD.Coeff = malloc(sizeof(int) * (ADD.Degree + 1));
-  if(ADD.Coeff == NULL) exit(-2);
-  memset(ADD.Coeff,0,ADD.Degree + 1);
-  // Here is the end of initialize.
-  // Initialize the S of degree (deg(A) - deg(B)) for temporary polynomial.
-  SUB.Degree = A->Degree - B->Degree;
-  SUB.Coeff = malloc(sizeof(int) * (SUB.Degree + 1));
-  if(SUB.Coeff == NULL) exit(-2);
-  memset(SUB.Coeff,0,SUB.Degree + 1);
-  // Here is the end of initialize.
-  // Initialize the S of degree (deg(A) - deg(B)) for temporary polynomial.
-  MUL.Degree = A->Degree - B->Degree;
-  MUL.Coeff = malloc(sizeof(int) * (MUL.Degree + 1));
-  if(MUL.Coeff == NULL) exit(-2);
-  memset(MUL.Coeff,0,MUL.Degree + 1);
-  // Here is the end of initialize.
-  // Initialize the SB of degree (deg(A) - deg(B)) for temporary polynomial.
-  SB.Degree = A->Degree - B->Degree;
-  SB.Coeff = malloc(sizeof(int) * (SB.Degree + 1));
-  if(SB.Coeff == NULL) exit(-2);
-  memset(SB.Coeff,0,SB.Degree + 1);
-  // Here is the end of initialize.
-  // Initialize the QS of degree (deg(A) - deg(B)) for temporary polynomial.
-  QS.Degree = A->Degree - B->Degree;
-  QS.Coeff = malloc(sizeof(int) * (QS.Degree + 1));
-  if(QS.Coeff == NULL) exit(-2);
-  memset(QS.Coeff,0,QS.Degree + 1);
-  // Here is the end of initialize.
-
-  // So while deg(R) - deg(B) >= 0, then th loop has continued.
-  degree = R->Degree;
-  for(i=0;i<condition;i++){
-    S.Coeff[i] = R->Coeff[degree] * inv_mod(B->Coeff[degree],p);
+  Polynomial *SB,*QS,*RSB;
+  // S = malloc(sizeof(Polynomial));
+  SB = malloc(sizeof(Polynomial));
+  QS = malloc(sizeof(Polynomial));
+  RSB = malloc(sizeof(Polynomial));
+  /*
+    S is used for temporary Polynomial.
+    SB is used for S \times B.
+    QS is used for Q + S.
     
+  */
+
+  Q->Degree = (A->Degree - B->Degree);
+  Q->Coeff = malloc(sizeof(int) * (Q->Degree + 1));
+  if(Q->Coeff == NULL) exit(-1);
+
+  copyPolynomial(R,A);
+  // printf("R: ");
+  // printPolynomial(R); // for debug.
+
+  degree = R->Degree - B->Degree;
+  // printf("%d\n",degree);
+    
+  // SB = S \times B, QS = Q \times S.
+  // In this case, the conditon to stop the loop is when deg(R) < deg(B)
+  while(R->Degree >= B->Degree){
+    //
+    Polynomial *S = malloc(sizeof(Polynomial));
+    S->Degree = (R->Degree - B->Degree);
+    S->Coeff = malloc(sizeof(int) * (S->Degree + 1));
+    if(S->Coeff == NULL) exit(-1);
+
+    S->Coeff[R->Degree - B->Degree] = (getLeadCoeff(R) * inv_mod(getLeadCoeff(B),p))%p;
+    // printPolynomial(S);
+
+    addPolynomial(QS,S,Q);
+    // printPolynomial(QS);
+    copyPolynomial(Q,QS);
+    resizePolynomial(Q);
+    // printf("Q:");
+    // printPolynomial(Q);
+
+    mulPolynomial(SB,B,S);
+
+    //printPolynomial(SB);
+    resizePolynomial(SB);
+    //printPolynomial(SB);
+    
+    subPolynomial(RSB,R,SB);
+    //printPolynomial(RSB);
+    resizePolynomial(RSB);
+    //printPolynomial(RSB);
+    
+    copyPolynomial(R,RSB);
+
+    //printPolynomial(R);
+    resizePolynomial(R);
+    //printPolynomial(R);
+
+    //printf("the Degree of R is %d\n",R->Degree);
+    //printf("the Degree of B is %d\n",B->Degree);
+    
+    free(S->Coeff);
+    free(S);
   }
+  // delPolynomial(S);
+  delPolynomial(SB);
+  delPolynomial(QS);
+  delPolynomial(RSB);
+  // So while deg(R) - deg(B) >= 0, then th loop has continued.
 }
 
 int main(){
-  Polynomial a,b,c,d;
-  int i;
+  // Polynomial a,b,c,d;
+  Polynomial *A,*B,*P,*Q,*R;
+  A = malloc(sizeof(Polynomial));
+  B = malloc(sizeof(Polynomial));
+  P = malloc(sizeof(Polynomial));
+  Q = malloc(sizeof(Polynomial));
+  R = malloc(sizeof(Polynomial));
 
-  initPolynomial(&a,3);
-  printf("the degree of a is %d.\n",a.Degree);
-  a.Coeff[0]=-2;
-  a.Coeff[1]=3;
-  a.Coeff[2]=4;
-  a.Coeff[3]=5;
-  printPolynomial(&a);
-  copyPolynomial(&b,&a);
-  printPolynomial(&b);
+  initPolynomial(A,4);
+  A->Coeff[0]=2;
+  A->Coeff[1]=4;
+  A->Coeff[2]=1;
+  A->Coeff[3]=2;
+  A->Coeff[4]=3;
+  printf("A: ");
+  printPolynomial(A);
+  
+  initPolynomial(B,3);
+  B->Coeff[0]=0;
+  B->Coeff[1]=1;
+  B->Coeff[2]=0;
+  B->Coeff[3]=1;
+  printf("B: ");
+  printPolynomial(B);
+  
+  divPolynomial(Q,R,A,B);
 
-  divPolynomial(&d,&c,&a,&b);
-  printPolynomial(&c);
-    
+  printf("Q: ");
+  printPolynomial(Q);
+  printf("R: ");
+  printPolynomial(R);
+  
+  delPolynomial(A);
+  delPolynomial(B);
+  delPolynomial(P);
+  delPolynomial(Q);
+
   return 0;
+  
 }
+
   
   
