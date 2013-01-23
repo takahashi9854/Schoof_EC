@@ -9,6 +9,11 @@ typedef struct{
   int *Coeff; // coefficients of polynomial.
 } Polynomial;
 
+typedef struct{
+  Polynomial *P;
+  int ny;
+} DivPolynomial;
+
 int inv_mod(int a, int b){
   // long long xa, ya, r, q, x, y, ra;
   int xa,ya,r,q,x,y,ra;
@@ -286,6 +291,24 @@ void divPolynomial(Polynomial *Q,Polynomial *R,const Polynomial *A, const Polyno
   // So while deg(R) - deg(B) >= 0, then th loop has continued.
 }
 
+void PolynomialMod(Polynomial *R,const Polynomial *A,const Polynomial *M){
+  // R = A mod M
+  Polynomial *Q = malloc(sizeof(Polynomial));
+  divPolynomial(Q,R,A,M);
+}
+
+
+void PolynomialGCD(Polynomial *G,const Polynomial *A,const Polynomial *B){
+  // GCD(A,B) = G
+  if(B->Degree == 0 && B->Coeff[0] ==0){
+    copyPolynomial(G,A);
+    return;
+  }
+  Polynomial *R = malloc(sizeof(Polynomial));
+  
+}
+
+
 int main(){
   // Polynomial a,b,c,d;
   Polynomial *A,*B,*P,*Q,*R;
@@ -318,11 +341,15 @@ int main(){
   printPolynomial(Q);
   printf("R: ");
   printPolynomial(R);
+
+  PolynomialGCD(Q,A,B);
+  printPolynomial(Q);
   
   delPolynomial(A);
   delPolynomial(B);
   delPolynomial(P);
   delPolynomial(Q);
+  
 
   return 0;
   
