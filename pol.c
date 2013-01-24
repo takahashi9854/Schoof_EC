@@ -304,6 +304,25 @@ void PolynomialGCD(Polynomial *G,const Polynomial *A,const Polynomial *B){
     free(R->Coeff);
     free(R);
   }
+  printPolynomial(A);
+  printPolynomial(B);
+  while(B->Coeff[B->Degree]!=0){
+    Polynomial *R;
+    R = malloc(sizeof(Polynomial));
+    PolynomialMod(R,A,B);
+    copyPolynomial(A,B);
+    copyPolynomial(B,R);
+    resizePolynomial(A);
+    resizePolynomial(B);
+    free(R->Coeff);
+    free(R);
+  }
+  if(A->Degree == 0 && A->Coeff[A->Degree] == 0){
+    A->Coeff[A->Degree] = 1;
+    copyPolynomial(G,A);
+    return;
+  }
+    
   copyPolynomial(G,A);
 }
 
