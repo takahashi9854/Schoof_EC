@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 // #define p 3
-const int p = 5;
+const int p = 19;
 
 typedef struct{
   int Degree; //order of the polynominl.
@@ -293,7 +293,8 @@ void PolynomialGCD(Polynomial *G,const Polynomial *A,const Polynomial *B){
   }
   // here has a big problem.
   // what is the condition when I want to stop the loop.
-  while(B->Degree != 0 && B->Coeff[B->Degree] != 0){
+  while(B->Coeff[B->Degree] != 0){
+    printf("i: %d.\n",i++);
     Polynomial *R;
     R = malloc(sizeof(Polynomial));
     PolynomialMod(R,A,B);
@@ -304,29 +305,11 @@ void PolynomialGCD(Polynomial *G,const Polynomial *A,const Polynomial *B){
     free(R->Coeff);
     free(R);
   }
-  printPolynomial(A);
-  printPolynomial(B);
-  while(B->Coeff[B->Degree]!=0){
-    Polynomial *R;
-    R = malloc(sizeof(Polynomial));
-    PolynomialMod(R,A,B);
-    copyPolynomial(A,B);
-    copyPolynomial(B,R);
-    resizePolynomial(A);
-    resizePolynomial(B);
-    free(R->Coeff);
-    free(R);
-  }
-  if(A->Degree == 0 && A->Coeff[A->Degree] == 0){
-    A->Coeff[A->Degree] = 1;
-    copyPolynomial(G,A);
-    return;
-  }
-    
   copyPolynomial(G,A);
 }
 
 int main(){
+  int i;
   // Polynomial a,b,c,d;
   Polynomial *A,*B,*P,*Q,*R;
   A = malloc(sizeof(Polynomial));
@@ -335,18 +318,16 @@ int main(){
   Q = malloc(sizeof(Polynomial));
   R = malloc(sizeof(Polynomial));
 
-  initPolynomial(A,4);
-  A->Coeff[0]=3;
-  A->Coeff[1]=4;
-  A->Coeff[2]=1;
-  A->Coeff[3]=2;
-  A->Coeff[4]=3;
+  initPolynomial(A,19);
+  A->Coeff[19]=1;
+  for(i=0;i<A->Degree;i++) A->Coeff[i]=0;
+  A->Coeff[1]=-1;
   printf("A: ");
   printPolynomial(A);
   
   initPolynomial(B,3);
-  B->Coeff[0]=0;
-  B->Coeff[1]=1;
+  B->Coeff[0]=1;
+  B->Coeff[1]=2;
   B->Coeff[2]=0;
   B->Coeff[3]=1;
   printf("B: ");
@@ -359,60 +340,60 @@ int main(){
   printf("R: ");
   printPolynomial(R);
 
-  printf("\n");
+  /* printf("\n"); */
 
-  copyPolynomial(A,B);
-  copyPolynomial(B,R);
-  printf("A: ");
-  printPolynomial(A);
-  printf("B: ");
-  printPolynomial(B);
+  /* copyPolynomial(A,B); */
+  /* copyPolynomial(B,R); */
+  /* printf("A: "); */
+  /* printPolynomial(A); */
+  /* printf("B: "); */
+  /* printPolynomial(B); */
 
-  divPolynomial(Q,R,A,B);
+  /* divPolynomial(Q,R,A,B); */
 
-  printf("Q: ");
-  printPolynomial(Q);
-  printf("R: ");
-  printPolynomial(R);
+  /* printf("Q: "); */
+  /* printPolynomial(Q); */
+  /* printf("R: "); */
+  /* printPolynomial(R); */
 
-  printf("\n");
+  /* printf("\n"); */
   
-  copyPolynomial(A,B);
-  copyPolynomial(B,R);
-  printf("A: ");
-  printPolynomial(A);
-  printf("B: ");
-  printPolynomial(B);
+  /* copyPolynomial(A,B); */
+  /* copyPolynomial(B,R); */
+  /* printf("A: "); */
+  /* printPolynomial(A); */
+  /* printf("B: "); */
+  /* printPolynomial(B); */
 
-  divPolynomial(Q,R,A,B);
+  /* divPolynomial(Q,R,A,B); */
 
-  printf("Q: ");
-  printPolynomial(Q);
-  printf("R: ");
-  printPolynomial(R);
+  /* printf("Q: "); */
+  /* printPolynomial(Q); */
+  /* printf("R: "); */
+  /* printPolynomial(R); */
 
-  printf("\n");
+  /* printf("\n"); */
 
-  initPolynomial(A,4);
-  A->Coeff[0]=3;
-  A->Coeff[1]=4;
-  A->Coeff[2]=1;
-  A->Coeff[3]=2;
-  A->Coeff[4]=3;
-  printf("A: ");
-  printPolynomial(A);
+  /* initPolynomial(A,4); */
+  /* A->Coeff[0]=3; */
+  /* A->Coeff[1]=4; */
+  /* A->Coeff[2]=1; */
+  /* A->Coeff[3]=2; */
+  /* A->Coeff[4]=3; */
+  /* printf("A: "); */
+  /* printPolynomial(A); */
   
-  initPolynomial(B,3);
-  B->Coeff[0]=0;
-  B->Coeff[1]=1;
-  B->Coeff[2]=0;
-  B->Coeff[3]=1;
-  printf("B: ");
-  printPolynomial(B);
+  /* initPolynomial(B,3); */
+  /* B->Coeff[0]=0; */
+  /* B->Coeff[1]=1; */
+  /* B->Coeff[2]=0; */
+  /* B->Coeff[3]=1; */
+  /* printf("B: "); */
+  /* printPolynomial(B); */
 
-  PolynomialGCD(R,A,B);
-  printf("R: ");
-  printPolynomial(R);
+  /* PolynomialGCD(R,A,B); */
+  /* printf("R: "); */
+  /* printPolynomial(R); */
   
   /*
   initPolynomial(A,2);
