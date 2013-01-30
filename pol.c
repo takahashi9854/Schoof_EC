@@ -10,8 +10,8 @@ typedef struct{
 } Polynomial;
 
 typedef struct{
-  Polynomial *P;
-  int ny; // the degree of y.
+  Polynomial *D;
+  int ny; // the order of y.
 } DivPolynomial;
 
 int inv_mod(int a, int b){
