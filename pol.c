@@ -47,12 +47,14 @@ int initPolynomial(Polynomial *P,int size){
   P->Degree = size;
   n = (P->Degree + 1); // the number of coefficients.
   P->Coeff = malloc(sizeof(int) * n);
-  memset(P->Coeff,0,n);
+  // memset(P->Coeff,0,n);
   if(P->Coeff == NULL) exit(-1);
+  for(i=0;i<=P->Degree;i++) P->Coeff[i]=0;
   return 1;
 }
 
 void delPolynomial(Polynomial *P){
+  memset(P->Coeff,0,(P->Degree));
   free(P->Coeff);
   free(P);
 }
@@ -93,6 +95,7 @@ void addPolynomial(Polynomial *C, const Polynomial *A,const Polynomial *B){
     // c->co[i] = a->co[i] + b->co[i];
     C->Coeff[i] = (A->Coeff[i] + B->Coeff[i])%p;
   }
+  resizePolynomial(C);
 }
 
 void subPolynomial(Polynomial *c, const Polynomial *a,const Polynomial *b){
@@ -121,6 +124,7 @@ void subPolynomial(Polynomial *c, const Polynomial *a,const Polynomial *b){
     c->Coeff[i] = (a->Coeff[i] -  b->Coeff[i])%p;
     while(c->Coeff[i] < 0) (c->Coeff[i])+=p;
   }
+  resizePolynomial(c);
 }
 
 void mulPolynomial(Polynomial *c, const Polynomial *a,const Polynomial *b){
@@ -133,12 +137,16 @@ void mulPolynomial(Polynomial *c, const Polynomial *a,const Polynomial *b){
   if(c->Coeff == NULL) exit(-1);
 
   if(a->Degree == 0){
-    for(i=0;i<=b->Degree;i++) c->Coeff[i]=(a->Coeff[0]*b->Coeff[i])%p;
+    // for(i=0;i<=b->Degree;i++) c->Coeff[i]=(a->Coeff[0]*b->Coeff[i])%p;
+    for(i=0;i<=b->Degree;i++) c->Coeff[i]=(a->Coeff[0]*b->Coeff[i]);
+    resizePolynomial(c);
     return;
   }
 
   if(b->Degree == 0){
-    for(i=0;i<=a->Degree;i++) c->Coeff[i]=(b->Coeff[0]*a->Coeff[i])%p;
+    // for(i=0;i<=a->Degree;i++) c->Coeff[i]=(b->Coeff[0]*a->Coeff[i])%p;
+    for(i=0;i<=a->Degree;i++) c->Coeff[i]=(b->Coeff[0]*a->Coeff[i]);
+    resizePolynomial(c);
     return;
   }
 
@@ -150,6 +158,7 @@ void mulPolynomial(Polynomial *c, const Polynomial *a,const Polynomial *b){
       while(c->Coeff[i+j] < 0) (c->Coeff[i+j])+=p;
     }
   }
+  resizePolynomial(c);
 }
 
 void copyPolynomial(Polynomial *x, const Polynomial *y){
@@ -223,6 +232,13 @@ int getLeadCoeff(const Polynomial *P){
   else return P->Coeff[P->Degree];
 }
 
+void checkCoeff(Polynomial *A){
+  int i;
+  for(i=0;i<=A->Degree;i++){
+    while(A->Coeff[i]<0) A->Coeff[i]+=p;
+  }
+}
+
 void divPolynomial(Polynomial *Q,Polynomial *R,const Polynomial *A, const Polynomial *B){
   int i=0,degree;
   int condition; // condition to stop the loop.
@@ -254,23 +270,30 @@ void divPolynomial(Polynomial *Q,Polynomial *R,const Polynomial *A, const Polyno
 
     copyPolynomial(Q,QS);
     resizePolynomial(Q);
+    checkCoeff(Q);
 
     mulPolynomial(SB,B,S);
     resizePolynomial(SB);
+    checkCoeff(SB);
 
     subPolynomial(RSB,R,SB);
     resizePolynomial(RSB);
+    checkCoeff(RSB);
 
     copyPolynomial(R,RSB);
     resizePolynomial(R);
+    checkCoeff(R);
     
-    free(S->Coeff);
-    free(S);
+    // free(S->Coeff);
+    // free(S);
+    delPolynomial(S);
+    
   }
   delPolynomial(SB);
   delPolynomial(QS);
   delPolynomial(RSB);
 }
+
 
 void PolynomialMod(Polynomial *R,const Polynomial *A,const Polynomial *M){
   // R = A mod M
@@ -283,6 +306,7 @@ void PolynomialMod(Polynomial *R,const Polynomial *A,const Polynomial *M){
 }
 
 
+/*
 void PolynomialGCD(Polynomial *G,const Polynomial *A,const Polynomial *B){
   // GCD(A,B) = G
   int i=0;
@@ -307,16 +331,107 @@ void PolynomialGCD(Polynomial *G,const Polynomial *A,const Polynomial *B){
   }
   copyPolynomial(G,A);
 }
+*/
 
 int main(){
+  printf("p = %d\n",p);
   int i;
   // Polynomial a,b,c,d;
-  Polynomial *A,*B,*P,*Q,*R;
+  Polynomial *A,*B,*C,*P,*Q,*R;
   A = malloc(sizeof(Polynomial));
   B = malloc(sizeof(Polynomial));
+  C = malloc(sizeof(Polynomial));
   P = malloc(sizeof(Polynomial));
   Q = malloc(sizeof(Polynomial));
   R = malloc(sizeof(Polynomial));
+
+  
+  initPolynomial(A,19);
+  for(i=0;i<=18;i++) A->Coeff[i]=0;
+  A->Coeff[19]=1;
+  printPolynomial(A);
+
+  initPolynomial(B,3);
+  B->Coeff[3]=1;
+  B->Coeff[2]=0;
+  B->Coeff[1]=2;
+  B->Coeff[0]=1;
+  printPolynomial(B);
+
+  divPolynomial(R,P,A,B);
+  printPolynomial(R);
+  printPolynomial(P);
+
+  PolynomialMod(Q,A,B);
+  printPolynomial(Q);
+      
+  delPolynomial(A);
+  delPolynomial(B);
+  delPolynomial(C);
+  delPolynomial(P);
+  delPolynomial(Q);
+  delPolynomial(R);
+  
+
+  return 0;
+  
+}
+
+// for divPolynomial.
+/*
+    printf("i = %d\n",++i);
+    printf("S :");
+    printPolynomial(S);
+    printf("SB: ");
+    printPolynomial(SB);
+    printf("QS: ");
+    printPolynomial(QS);
+    printf("RSB: ");
+    printPolynomial(RSB);
+    */
+  
+  
+/*
+  initPolynomial(A,16);
+  A->Coeff[16]=1;
+  A->Coeff[15]=0;
+  A->Coeff[14]=17;
+  A->Coeff[13]=18;
+  A->Coeff[12]=4;
+  A->Coeff[11]=4;
+  A->Coeff[10]=12;
+  A->Coeff[9]=7;
+  A->Coeff[8]=10;
+  A->Coeff[7]=12;
+  A->Coeff[6]=11;
+  A->Coeff[5]=4;
+  A->Coeff[4]=4;
+  A->Coeff[3]=0;
+  A->Coeff[2]=7;
+  A->Coeff[1]=15;
+  A->Coeff[0]=5;
+  printPolynomial(A);
+  
+  initPolynomial(B,3);
+  B->Coeff[3]=1;
+  B->Coeff[2]=0;
+  B->Coeff[1]=2;
+  B->Coeff[0]=1;
+  printPolynomial(B);
+
+  initPolynomial(C,2);
+  C->Coeff[2]=1;
+  C->Coeff[1]=13;
+  C->Coeff[0]=14;
+
+  
+
+  mulPolynomial(P,A,B);
+  printPolynomial(P);
+
+  addPolynomial(R,P,C);
+  printPolynomial(R);
+ 
 
   initPolynomial(A,19);
   A->Coeff[19]=1;
@@ -340,62 +455,62 @@ int main(){
   printf("R: ");
   printPolynomial(R);
 
-  /* printf("\n"); */
+  printf("\n");
 
-  /* copyPolynomial(A,B); */
-  /* copyPolynomial(B,R); */
-  /* printf("A: "); */
-  /* printPolynomial(A); */
-  /* printf("B: "); */
-  /* printPolynomial(B); */
+  copyPolynomial(A,B);
+  copyPolynomial(B,R);
+  printf("A: ");
+  printPolynomial(A);
+  printf("B: ");
+  printPolynomial(B);
 
-  /* divPolynomial(Q,R,A,B); */
+  divPolynomial(Q,R,A,B);
 
-  /* printf("Q: "); */
-  /* printPolynomial(Q); */
-  /* printf("R: "); */
-  /* printPolynomial(R); */
+  printf("Q: ");
+  printPolynomial(Q);
+  printf("R: ");
+  printPolynomial(R);
 
-  /* printf("\n"); */
+  printf("\n");
   
-  /* copyPolynomial(A,B); */
-  /* copyPolynomial(B,R); */
-  /* printf("A: "); */
-  /* printPolynomial(A); */
-  /* printf("B: "); */
-  /* printPolynomial(B); */
+  copyPolynomial(A,B);
+  copyPolynomial(B,R);
+  printf("A: ");
+  printPolynomial(A);
+  printf("B: ");
+  printPolynomial(B);
 
-  /* divPolynomial(Q,R,A,B); */
+  divPolynomial(Q,R,A,B);
 
-  /* printf("Q: "); */
-  /* printPolynomial(Q); */
-  /* printf("R: "); */
-  /* printPolynomial(R); */
+  printf("Q: ");
+  printPolynomial(Q);
+  printf("R: ");
+  printPolynomial(R);
 
-  /* printf("\n"); */
+  printf("\n");
 
-  /* initPolynomial(A,4); */
-  /* A->Coeff[0]=3; */
-  /* A->Coeff[1]=4; */
-  /* A->Coeff[2]=1; */
-  /* A->Coeff[3]=2; */
-  /* A->Coeff[4]=3; */
-  /* printf("A: "); */
-  /* printPolynomial(A); */
+  initPolynomial(A,4);
+  A->Coeff[0]=3;
+  A->Coeff[1]=4;
+  A->Coeff[2]=1;
+  A->Coeff[3]=2;
+  A->Coeff[4]=3;
+  printf("A: ");
+  printPolynomial(A);
   
-  /* initPolynomial(B,3); */
-  /* B->Coeff[0]=0; */
-  /* B->Coeff[1]=1; */
-  /* B->Coeff[2]=0; */
-  /* B->Coeff[3]=1; */
-  /* printf("B: "); */
-  /* printPolynomial(B); */
+  initPolynomial(B,3);
+  B->Coeff[0]=0;
+  B->Coeff[1]=1;
+  B->Coeff[2]=0;
+  B->Coeff[3]=1;
+  printf("B: ");
+  printPolynomial(B);
 
-  /* PolynomialGCD(R,A,B); */
-  /* printf("R: "); */
-  /* printPolynomial(R); */
+  PolynomialGCD(R,A,B);
+  printf("R: ");
+  printPolynomial(R);
   
-  /*
+  
   initPolynomial(A,2);
   initPolynomial(B,1);
   A->Coeff[2]=3;
@@ -412,17 +527,4 @@ int main(){
   printPolynomial(Q);
   PolynomialGCD(R,A,B);
   printPolynomial(R);
-  */
-      
-  delPolynomial(A);
-  delPolynomial(B);
-  delPolynomial(P);
-  delPolynomial(Q);
-  
-
-  return 0;
-  
-}
-
-  
-  
+*/
